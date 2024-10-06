@@ -92,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _overlayLoader.show(context);
 
     try {
-      User? user = await FirebaseAuthHandler.registerUsingEmailPassword(
+      var user = await FirebaseAuthHandler.registerUsingEmailPassword(
         name: name,
         email: email,
         password: password,
@@ -100,36 +100,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
         image: image!,
       );
 
-      if (user != null) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ));
-      }
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
       _overlayLoader.hide();
-    } catch (e) {
-      // Handle specific exceptions if necessary
+    } on FirebaseAuthException catch (e) {
       String errorMessage;
 
-      if (e is FirebaseAuthException) {
-        switch (e.code) {
-          case 'weak-password':
-            errorMessage = 'The password provided is too weak.';
-            break;
-          case 'email-already-in-use':
-            errorMessage = 'The account already exists for that email.';
-            break;
-          case 'invalid-email':
-            errorMessage = 'The email address is not valid.';
-            break;
-          default:
-            errorMessage = 'An unknown error occurred. Please try again.';
-        }
-      } else {
-        errorMessage = 'An error occurred: ${e.toString()}';
+      switch (e.code) {
+        case 'weak-password':
+          errorMessage = 'The password provided is too weak.';
+          break;
+        case 'email-already-in-use':
+          errorMessage = 'The account already exists for that email.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'The email address is not valid.';
+          break;
+        default:
+          errorMessage = 'An unknown error occurred. Please try again.';
       }
 
       showSnack(context, errorMessage);
-    } finally {
+      _overlayLoader.hide();
+    } catch (e) {
+      showSnack(context, 'An error occurred: ${e.toString()}');
       _overlayLoader.hide();
     }
   }
@@ -168,7 +163,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       image != null ? FileImage(image!) : null,
                                   radius: 40,
                                   child: image == null
-                                      ? const Icon(Icons.camera_alt)
+                                      ? const Icon(Icons.camera_alt,
+                                          color: Colors.white)
                                       : null,
                                 )),
                             const SizedBox(

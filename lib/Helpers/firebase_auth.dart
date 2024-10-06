@@ -16,29 +16,48 @@ class FirebaseAuthHandler {
   }) async {
     FirebaseAuth auth = FirebaseAuth.instance;
     User? user;
+
     try {
+      // Create a new user with email and password
       UserCredential userCredential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      user = userCredential.user;
-      await user!.updateDisplayName(name);
-      String url = await FirebaseAuthHandler.uploadImage(image, user.uid);
 
-      await user.updatePhotoURL(url);
-      await user.reload();
-      await FirebaseFirestore.instance.collection("users").doc(user.uid).set(
-          {"username": name, "email": email, "image": url, "uid": user.uid});
-      user = auth.currentUser;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        showSnack(context, "The password provided is too weak.");
-      } else if (e.code == 'email-already-in-use') {
-        showSnack(context, "The account already exists for that email.");
+      user = userCredential.user;
+
+      if (user != null) {
+        // Update display name
+        await user.updateDisplayName(name);
+
+        // Upload image and get URL
+        String url = await uploadImage(image, user.uid);
+
+        // Update user photo URL
+        await user.updatePhotoURL(url);
+
+        // Reload user to get updated info
+        await user.reload();
+
+        // Save user info to Firestore
+        await FirebaseFirestore.instance.collection("users").doc(user.uid).set({
+          "username": name,
+          "email": email,
+          "image": url,
+          "uid": user.uid,
+        });
+
+        // Get the updated user
+        user = auth.currentUser;
       }
+    } on FirebaseAuthException catch (e) {
+      _handleAuthError(e, context);
+    } catch (e) {
+      // Handle any unexpected errors
+      showSnack(context, "An unexpected error occurred: ${e.toString()}");
     }
 
-    return user;
+    return user; // Return user only if registration and data saving were successful
   }
 
   static Future<User?> signInUsingEmailPassword({
@@ -50,20 +69,21 @@ class FirebaseAuthHandler {
     User? user;
 
     try {
+      // Sign in with email and password
       UserCredential userCredential = await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
       user = userCredential.user;
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        showSnack(context, 'No user found for that email.');
-      } else if (e.code == 'wrong-password') {
-        showSnack(context, 'Wrong password provided.');
-      }
+      _handleAuthError(e, context);
+    } catch (e) {
+      // Handle any unexpected errors
+      showSnack(context, "An unexpected error occurred: ${e.toString()}");
     }
 
-    return user;
+    return user; // Return the user object if sign-in is successful
   }
 
   static Future<User?> refreshUser(User user) async {
@@ -72,14 +92,45 @@ class FirebaseAuthHandler {
     await user.reload();
     User? refreshedUser = auth.currentUser;
 
-    return refreshedUser;
+    return refreshedUser; // Return the refreshed user
   }
 
   static Future<String> uploadImage(File imageFile, String uid) async {
-    final storageRef =
-        FirebaseStorage.instance.ref().child("user_image").child('${uid}.jpg');
-    await storageRef.putFile(imageFile);
-    String url = await storageRef.getDownloadURL();
-    return url;
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child("user_image")
+          .child('${uid}.jpg');
+
+      // Upload the file
+      await storageRef.putFile(imageFile);
+
+      // Get the download URL
+      String url = await storageRef.getDownloadURL();
+      return url;
+    } catch (e) {
+      // Handle any errors during image upload
+      throw Exception("Image upload failed: ${e.toString()}");
+    }
+  }
+
+  static void _handleAuthError(FirebaseAuthException e, BuildContext context) {
+    // Handle authentication errors
+    switch (e.code) {
+      case 'weak-password':
+        showSnack(context, "The password provided is too weak.");
+        break;
+      case 'email-already-in-use':
+        showSnack(context, "The account already exists for that email.");
+        break;
+      case 'user-not-found':
+        showSnack(context, 'No user found for that email.');
+        break;
+      case 'wrong-password':
+        showSnack(context, 'Wrong password provided.');
+        break;
+      default:
+        showSnack(context, "Authentication error: ${e.message}");
+    }
   }
 }

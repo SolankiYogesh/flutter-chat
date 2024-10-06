@@ -62,6 +62,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           duration: const Duration(milliseconds: 300),
         );
       }
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(widget.user.uid)
+          .set({
+        "last_msg": text,
+      }, SetOptions(merge: true));
     }
   }
 
@@ -69,6 +75,14 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(context, true);
+            }),
         backgroundColor: const Color(ColorProvider.PrimaryColor),
         title: Row(
           children: [
@@ -79,7 +93,11 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Text(widget.user.username!),
+            Text(widget.user.username!,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge!
+                    .copyWith(color: Colors.white)),
           ],
         ),
         centerTitle: true,

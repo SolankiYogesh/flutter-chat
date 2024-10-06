@@ -1,3 +1,6 @@
+import 'package:chat_app/Models/user_model/UserModel.dart';
+import 'package:chat_app/Screens/home_screen/user_item.dart';
+import 'package:chat_app/Screens/user_list_screen/user_list_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,8 +9,6 @@ import 'package:chat_app/Helpers/Color.dart';
 import 'package:chat_app/Helpers/Images.dart';
 
 import 'package:chat_app/Helpers/Utils.dart';
-import 'package:chat_app/Models/user_model/UserModel.dart';
-import 'package:chat_app/Screens/home_screen/user_item.dart';
 import 'package:chat_app/Screens/login_screen/login_screen.dart';
 
 import 'package:quickalert/quickalert.dart';
@@ -21,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final User? user = FirebaseAuth.instance.currentUser;
+  final ScrollController _controller = ScrollController();
 
   void logOut() async {
     try {
@@ -53,7 +55,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => const UserListScreen(),
+          ));
+        },
         backgroundColor: const Color(ColorProvider.PrimaryColor),
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -115,15 +121,17 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             // Ensure that snapshot has data before accessing it
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Center(
-                child: Text("No users found"),
-              );
-            }
 
             final userDocs = snapshot.data!.docs
-                .where((element) => (element.data() as Map)["uid"] != user?.uid)
+                .where((element) =>
+                    (element.data() as Map)["added_by"] == user?.uid)
                 .toList();
+
+            if (userDocs.isEmpty) {
+              return const Center(
+                child: Text("No users found."),
+              );
+            }
 
             return Align(
               alignment: Alignment.topCenter,
@@ -136,15 +144,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: userDocs.length,
                 itemBuilder: (context, index) {
                   final userData = userDocs[index].data() as Map;
+
                   if (userData == null) {
                     return const SizedBox(); // Return an empty box if userData is null
                   }
                   return UserItem(
+                    isFromListScreen: false,
                     user: UserModel(
                       email: userData["email"] ?? "",
                       uid: userData["uid"] ?? "",
                       username: userData["username"] ?? "",
                       image: userData["image"] ?? "",
+                      last_msg: userData["last_msg"] ?? "",
                     ),
                   );
                 },
