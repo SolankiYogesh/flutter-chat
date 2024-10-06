@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:folder_stucture/Helpers/Images.dart';
+import 'package:chat_app/Helpers/Images.dart';
 
 List<String> emojis = [
   Images.emoji1,

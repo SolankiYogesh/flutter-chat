@@ -1,19 +1,18 @@
+import 'package:chat_app/components/overlay_loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:folder_stucture/Helpers/Color.dart';
+import 'package:chat_app/Helpers/Color.dart';
 
-import 'package:folder_stucture/Helpers/Utils.dart';
-import 'package:folder_stucture/Helpers/firebase_auth.dart';
-import 'package:folder_stucture/Helpers/validator.dart';
-import 'package:folder_stucture/Screens/home_screen/home_screen.dart';
-
-import 'package:folder_stucture/Screens/login_screen/welcome_view.dart';
-import 'package:folder_stucture/Screens/register_screen/register_screen.dart';
-import 'package:folder_stucture/components/LoaderHandler.dart';
-import 'package:folder_stucture/components/button.dart';
-import 'package:folder_stucture/components/loader.dart';
-import 'package:folder_stucture/components/text_input.dart';
+import 'package:chat_app/Helpers/Utils.dart';
+import 'package:chat_app/Helpers/firebase_auth.dart';
+import 'package:chat_app/Helpers/validator.dart';
+import 'package:chat_app/Screens/home_screen/home_screen.dart';
+import 'package:flutter/foundation.dart';
+import 'package:chat_app/Screens/login_screen/welcome_view.dart';
+import 'package:chat_app/Screens/register_screen/register_screen.dart';
+import 'package:chat_app/components/button.dart';
+import 'package:chat_app/components/text_input.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,8 +24,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final LoaderState loader = LoaderState();
-
+  final OverlayLoader _overlayLoader = OverlayLoader();
   bool isLoading = false;
   late FocusNode passwordNode;
 
@@ -66,18 +64,41 @@ class _LoginScreenState extends State<LoginScreen> {
       showSnack(context, isPassword);
       return;
     }
+    _overlayLoader.show(context);
 
-    loader.activate();
-    LoaderHanlder().isLoading(true);
+    try {
+      User? user = await FirebaseAuthHandler.signInUsingEmailPassword(
+          email: email, password: password, context: context);
+      _overlayLoader.hide();
+      if (user != null) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
+        ));
+      }
+    } catch (e) {
+      _overlayLoader.hide(); // Hide the loader in case of error
+      String errorMessage;
 
-    User? user = await FirebaseAuthHandler.signInUsingEmailPassword(
-        email: email, password: password, context: context);
-    LoaderHanlder().isLoading(false);
-
-    if (user != null) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => const HomeScreen(),
-      ));
+      // Handle specific exceptions from Firebase
+      if (e is FirebaseAuthException) {
+        switch (e.code) {
+          case 'invalid-email':
+            errorMessage = 'The email address is badly formatted.';
+            break;
+          case 'user-not-found':
+            errorMessage = 'No user found for that email.';
+            break;
+          case 'wrong-password':
+            errorMessage = 'Wrong password provided for that user.';
+            break;
+          default:
+            errorMessage = 'An undefined Error happened.';
+        }
+      } else {
+        errorMessage = 'An error occurred: ${e.toString()}';
+      }
+      debugPrint('Error: $errorMessage');
+      showSnack(context, errorMessage);
     }
   }
 

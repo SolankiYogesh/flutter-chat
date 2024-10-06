@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
-import 'package:folder_stucture/Helpers/Color.dart';
-import 'package:folder_stucture/Screens/home_screen/home_screen.dart';
-import 'package:folder_stucture/Screens/login_screen/login_screen.dart';
+import 'package:chat_app/Helpers/Color.dart';
+import 'package:chat_app/Screens/home_screen/home_screen.dart';
+import 'package:chat_app/Screens/login_screen/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:folder_stucture/components/loader.dart';
+
 import 'firebase_options.dart';
 
 void main() async {
@@ -46,7 +46,6 @@ class MyApp extends StatelessWidget {
             return const LoginScreen();
           },
         ),
-        const Loader()
       ]),
     );
   }

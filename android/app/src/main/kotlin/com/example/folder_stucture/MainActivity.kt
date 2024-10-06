@@ -1,4 +1,4 @@
-package com.example.folder_stucture
+package com.chat_app
 
 import io.flutter.embedding.android.FlutterActivity
 

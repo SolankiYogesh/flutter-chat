@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:folder_stucture/Helpers/Color.dart';
-import 'package:folder_stucture/Helpers/Images.dart';
+import 'package:chat_app/Helpers/Color.dart';
+import 'package:chat_app/Helpers/Images.dart';
 
 class WelcomeView extends StatelessWidget {
   const WelcomeView({Key? key, required this.title}) : super(key: key);

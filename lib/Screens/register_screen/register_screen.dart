@@ -1,18 +1,19 @@
 import 'dart:io';
 
+import 'package:chat_app/components/overlay_loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:folder_stucture/Helpers/Color.dart';
+import 'package:chat_app/Helpers/Color.dart';
 
-import 'package:folder_stucture/Helpers/Utils.dart';
-import 'package:folder_stucture/Helpers/firebase_auth.dart';
-import 'package:folder_stucture/Helpers/validator.dart';
-import 'package:folder_stucture/Screens/home_screen/home_screen.dart';
+import 'package:chat_app/Helpers/Utils.dart';
+import 'package:chat_app/Helpers/firebase_auth.dart';
+import 'package:chat_app/Helpers/validator.dart';
+import 'package:chat_app/Screens/home_screen/home_screen.dart';
 
-import 'package:folder_stucture/Screens/login_screen/welcome_view.dart';
-import 'package:folder_stucture/components/button.dart';
-import 'package:folder_stucture/components/text_input.dart';
+import 'package:chat_app/Screens/login_screen/welcome_view.dart';
+import 'package:chat_app/components/button.dart';
+import 'package:chat_app/components/text_input.dart';
 import 'package:image_picker/image_picker.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -26,7 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  bool isLoading = false;
+  final OverlayLoader _overlayLoader = OverlayLoader();
   File? image;
 
   late FocusNode emailnode;
@@ -64,9 +65,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final String name = nameController.value.text;
     final String email = emailController.value.text;
     final String password = passwordController.value.text;
+
+    // Validate input
     var isName = Validator.validateName(name: name);
     var isEmail = Validator.validateEmail(email: email);
     var isPassword = Validator.validatePassword(password: password);
+
     if (isName != null) {
       showSnack(context, isName);
       return;
@@ -79,25 +83,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
       showSnack(context, isPassword);
       return;
     }
+
     if (image == null) {
       showSnack(context, "Please select your profile picture");
       return;
     }
-    User? user = await FirebaseAuthHandler.registerUsingEmailPassword(
+
+    _overlayLoader.show(context);
+
+    try {
+      User? user = await FirebaseAuthHandler.registerUsingEmailPassword(
         name: name,
         email: email,
         password: password,
         context: context,
-        image: image!);
-    if (user != null) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => const HomeScreen(),
-      ));
-    }
+        image: image!,
+      );
 
-    setState(() {
-      isLoading = false;
-    });
+      if (user != null) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) => const HomeScreen(),
+        ));
+      }
+      _overlayLoader.hide();
+    } catch (e) {
+      // Handle specific exceptions if necessary
+      String errorMessage;
+
+      if (e is FirebaseAuthException) {
+        switch (e.code) {
+          case 'weak-password':
+            errorMessage = 'The password provided is too weak.';
+            break;
+          case 'email-already-in-use':
+            errorMessage = 'The account already exists for that email.';
+            break;
+          case 'invalid-email':
+            errorMessage = 'The email address is not valid.';
+            break;
+          default:
+            errorMessage = 'An unknown error occurred. Please try again.';
+        }
+      } else {
+        errorMessage = 'An error occurred: ${e.toString()}';
+      }
+
+      showSnack(context, errorMessage);
+    } finally {
+      _overlayLoader.hide();
+    }
   }
 
   @override
@@ -182,7 +216,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: AppButton(
-                      isDisabled: isLoading,
                       onPress: () => onPressRegister(context),
                       title: "Register",
                     ),

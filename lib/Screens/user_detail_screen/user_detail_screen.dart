@@ -2,11 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:folder_stucture/Helpers/Color.dart';
+import 'package:chat_app/Helpers/Color.dart';
 
-import 'package:folder_stucture/Models/user_model/ChatModel.dart';
-import 'package:folder_stucture/Screens/user_detail_screen/chat_item.dart';
-import 'package:folder_stucture/components/chat_input.dart';
+import 'package:chat_app/Models/user_model/ChatModel.dart';
+import 'package:chat_app/Screens/user_detail_screen/chat_item.dart';
+import 'package:chat_app/components/chat_input.dart';
 
 import '../../Models/user_model/UserModel.dart';
 

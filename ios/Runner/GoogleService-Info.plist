@@ -2,22 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CLIENT_ID</key>
-	<string>491058889560-9vbn8ife5vhskcqtcevug0s9i8b55fd1.apps.googleusercontent.com</string>
-	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.491058889560-9vbn8ife5vhskcqtcevug0s9i8b55fd1</string>
 	<key>API_KEY</key>
-	<string>AIzaSyDmGg0oW6NrZGz5alnKkpvOB5yZqVHXySA</string>
+	<string>AIzaSyAGoZAqCXThWt6eKOmZorH71T1GP3_urA4</string>
 	<key>GCM_SENDER_ID</key>
-	<string>491058889560</string>
+	<string>344827798495</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.example.folderStucture</string>
 	<key>PROJECT_ID</key>
-	<string>chatme-1de8f</string>
+	<string>chatapp-e88e6</string>
 	<key>STORAGE_BUCKET</key>
-	<string>chatme-1de8f.appspot.com</string>
+	<string>chatapp-e88e6.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +25,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:491058889560:ios:50ca38a0098e89f3fe1b2d</string>
+	<string>1:344827798495:ios:f30126698c8e1b2bd11a6a</string>
+	<key>DATABASE_URL</key>
+	<string>https://chatapp-e88e6-default-rtdb.firebaseio.com</string>
 </dict>
 </plist>

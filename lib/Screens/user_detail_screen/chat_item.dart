@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:folder_stucture/Helpers/Color.dart';
-import 'package:folder_stucture/Models/user_model/ChatModel.dart';
-import 'package:folder_stucture/components/toop_tip.dart';
+import 'package:chat_app/Helpers/Color.dart';
+import 'package:chat_app/Models/user_model/ChatModel.dart';
+import 'package:chat_app/components/toop_tip.dart';
 
 import 'package:intl/intl.dart';
 import 'package:super_tooltip/super_tooltip.dart';

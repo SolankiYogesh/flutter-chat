@@ -2,13 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:folder_stucture/Helpers/Color.dart';
-import 'package:folder_stucture/Helpers/Images.dart';
+import 'package:chat_app/Helpers/Color.dart';
+import 'package:chat_app/Helpers/Images.dart';
 
-import 'package:folder_stucture/Helpers/Utils.dart';
-import 'package:folder_stucture/Models/user_model/UserModel.dart';
-import 'package:folder_stucture/Screens/home_screen/user_item.dart';
-import 'package:folder_stucture/Screens/login_screen/login_screen.dart';
+import 'package:chat_app/Helpers/Utils.dart';
+import 'package:chat_app/Models/user_model/UserModel.dart';
+import 'package:chat_app/Screens/home_screen/user_item.dart';
+import 'package:chat_app/Screens/login_screen/login_screen.dart';
 
 import 'package:quickalert/quickalert.dart';
 
@@ -20,22 +20,18 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late List<UserModel> users = [];
-
   final User? user = FirebaseAuth.instance.currentUser;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   void logOut() async {
-    FirebaseAuth.instance.signOut().then((value) {
+    try {
+      await FirebaseAuth.instance.signOut();
       showSnack(context, "User logged out successfully.", SnackBarType.info);
       Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => const LoginScreen(),
       ));
-    });
+    } catch (e) {
+      showSnack(context, "Logout failed: ${e.toString()}", SnackBarType.error);
+    }
   }
 
   void showAlert(BuildContext context) {
@@ -59,19 +55,24 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
         backgroundColor: const Color(ColorProvider.PrimaryColor),
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       backgroundColor: const Color(ColorProvider.PrimaryColor),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(ColorProvider.PrimaryColor),
-        title: Center(child: Text(user!.displayName ?? "")),
+        title: Center(
+            child: Text(user?.displayName ?? "",
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge!
+                    .copyWith(color: Colors.white))),
         leading: Align(
           alignment: Alignment.centerRight,
           child: CircleAvatar(
             backgroundColor: const Color(ColorProvider.PrimaryColor),
-            backgroundImage: user!.photoURL != null && user!.photoURL != ""
-                ? NetworkImage(user!.photoURL ?? "")
+            backgroundImage: user?.photoURL != null && user!.photoURL != ""
+                ? NetworkImage(user!.photoURL!)
                 : Image.asset(Images.user).image,
             radius: 25,
           ),
@@ -99,16 +100,12 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.all(Radius.circular(30))),
-        child: StreamBuilder(
+        child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance.collection("users").snapshots(),
           builder: (context, snapshot) {
-            final users = (snapshot.data!.docs)
-                .where((element) =>
-                    element.data()["uid"].compareTo(user!.uid) != 0)
-                .toList();
-            if (!snapshot.hasData || users.isEmpty) {
+            if (snapshot.hasError) {
               return const Center(
-                child: Text("No users found"),
+                child: Text("Something went wrong"),
               );
             }
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -116,11 +113,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: CircularProgressIndicator(),
               );
             }
-            if (snapshot.hasError) {
+
+            // Ensure that snapshot has data before accessing it
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return const Center(
-                child: Text("Something went wrong"),
+                child: Text("No users found"),
               );
             }
+
+            final userDocs = snapshot.data!.docs
+                .where((element) => (element.data() as Map)["uid"] != user?.uid)
+                .toList();
 
             return Align(
               alignment: Alignment.topCenter,
@@ -130,14 +133,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
                 cacheExtent: 10,
-                itemCount: users.length,
+                itemCount: userDocs.length,
                 itemBuilder: (context, index) {
+                  final userData = userDocs[index].data() as Map;
+                  if (userData == null) {
+                    return const SizedBox(); // Return an empty box if userData is null
+                  }
                   return UserItem(
                     user: UserModel(
-                        email: users[index].data()["email"],
-                        uid: users[index].data()["uid"],
-                        username: users[index].data()["username"],
-                        image: users[index].data()["image"]),
+                      email: userData["email"] ?? "",
+                      uid: userData["uid"] ?? "",
+                      username: userData["username"] ?? "",
+                      image: userData["image"] ?? "",
+                    ),
                   );
                 },
               ),

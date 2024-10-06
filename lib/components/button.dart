@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:folder_stucture/Helpers/Color.dart';
+import 'package:chat_app/Helpers/Color.dart';
 
 class AppButton extends StatelessWidget {
   const AppButton(

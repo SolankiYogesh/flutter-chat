@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:folder_stucture/Models/user_model/UserModel.dart';
-import 'package:folder_stucture/Screens/user_detail_screen/user_detail_screen.dart';
+import 'package:chat_app/Models/user_model/UserModel.dart';
+import 'package:chat_app/Screens/user_detail_screen/user_detail_screen.dart';
 
 class UserItem extends StatelessWidget {
   const UserItem({super.key, required this.user});
